@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">NotesApp</string>
+    <string name="add_button">Add Button</string>
+    <string name="search_tasks">Search Tasks</string>
+    <string name="search_icon">Search Icon</string>
+    <string name="sort_tasks">Sort Tasks</string>
+    <string name="delete_all">Delete All Notes</string>
+    <string name="notes">Notes</string>
+    <string name="search">Search</string>
+    <string name="close_icone">Close Icon</string>
+    <string name="sad_face_icon">Sadface Icon</string>
+    <string name="no_content">Did not find any notes</string>
+    <string name="add_note">Add new note</string>
+    <string name="back_arrow">Back Arrow</string>
+    <string name="dropdown_arrow">DropDown Arrow Icon</string>
+    <string name="update_icon">Update Icon</string>
+    <string name="title">Title</string>
+    <string name="description">Description</string>
+</resources>
