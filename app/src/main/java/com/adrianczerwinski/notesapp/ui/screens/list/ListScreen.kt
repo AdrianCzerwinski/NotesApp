@@ -7,10 +7,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import com.adrianczerwinski.notesapp.R
+import com.adrianczerwinski.notesapp.data.models.Priority
 import com.adrianczerwinski.notesapp.data.util.Action
+import com.adrianczerwinski.notesapp.data.util.RequestState
 import com.adrianczerwinski.notesapp.data.util.SearchAppBarState
 import com.adrianczerwinski.notesapp.ui.theme.fabBackgroundColor
 import com.adrianczerwinski.notesapp.ui.viewModels.SharedViewModel
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 @ExperimentalMaterialApi
@@ -21,11 +24,17 @@ fun ListScreen(
 ) {
     LaunchedEffect(key1 = true) {
         sharedViewModel.getAllNotes()
+        sharedViewModel.readSortState()
     }
     val searchAppBarState: SearchAppBarState by sharedViewModel.searchAppBarState
     val searchTextState: String by sharedViewModel.searchTextState
     val allNotes by sharedViewModel.allNotes.collectAsState()
     val searchedNotes by sharedViewModel.searchedNotes.collectAsState()
+
+    val sortState by sharedViewModel.sortState.collectAsState()
+    val lowPriorityNotes by sharedViewModel.lowPriorityNotes.collectAsState()
+    val highPriorityNotes by sharedViewModel.highPriorityNotes.collectAsState()
+
 
     val action by sharedViewModel.action
     val scaffoldState = rememberScaffoldState()
@@ -53,7 +62,10 @@ fun ListScreen(
             searchAppBarState = searchAppBarState,
             searchedNotes = searchedNotes,
             allNotes = allNotes,
-            navigateToNoteScreen = navigateToNoteScreen
+            navigateToNoteScreen = navigateToNoteScreen,
+            lowPriorityNotes = lowPriorityNotes,
+            highPriorityNotes = highPriorityNotes,
+            sortState = sortState
         )},
         floatingActionButton = {
             ListFab(onFabClicked = navigateToNoteScreen)

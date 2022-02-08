@@ -25,7 +25,9 @@ fun NavGraphBuilder.noteComposable(
         })
     ){ navBackStackEntry ->
         val noteId = navBackStackEntry.arguments!!.getInt(NOTE_ARGUMENT_KEY)
-        sharedViewModel.getSelectedNote(noteId = noteId)
+        LaunchedEffect(key1 = noteId) {
+            sharedViewModel.getSelectedNote(noteId = noteId)
+        }
         val selectedNote by sharedViewModel.selectedNote.collectAsState()
         
         LaunchedEffect(key1 = selectedNote){

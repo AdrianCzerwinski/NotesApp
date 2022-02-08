@@ -27,25 +27,50 @@ fun ListContent(
     allNotes: RequestState<List<NoteTask>>,
     searchedNotes: RequestState<List<NoteTask>>,
     searchAppBarState: SearchAppBarState,
-    navigateToNoteScreen: (noteId: Int)  -> Unit
+    navigateToNoteScreen: (noteId: Int)  -> Unit,
+    lowPriorityNotes: List<NoteTask>,
+    highPriorityNotes: List<NoteTask>,
+    sortState: RequestState<Priority>
 ) {
 
-    if (searchAppBarState == SearchAppBarState.TRIGGERED) {
-        if(searchedNotes is RequestState.Success) {
-            HandleListContent(
-                notes = searchedNotes.data,
-                navigateToNoteScreen = navigateToNoteScreen
-            )
+    if (sortState is RequestState.Success){
+        when{
+            searchAppBarState == SearchAppBarState.TRIGGERED -> {
+                if(searchedNotes is RequestState.Success) {
+                    HandleListContent(
+                        notes = searchedNotes.data,
+                        navigateToNoteScreen = navigateToNoteScreen
+                    )
+                }
+            }
+            sortState.data == Priority.NONE -> {
+                if (allNotes is RequestState.Success){
+                    HandleListContent(notes = allNotes.data, navigateToNoteScreen = navigateToNoteScreen)
+                }
+            }
+            sortState.data == Priority.HIGH -> {
+                HandleListContent(
+                    notes = highPriorityNotes,
+                    navigateToNoteScreen = navigateToNoteScreen
+                )
+            }
+            sortState.data == Priority.LOW -> {
+                HandleListContent(
+                    notes = lowPriorityNotes,
+                    navigateToNoteScreen = navigateToNoteScreen
+                )
+            }
         }
-    } else {
-        if (allNotes is RequestState.Success){
-            HandleListContent(notes = allNotes.data, navigateToNoteScreen = navigateToNoteScreen)
+
+
         }
+
     }
 
 
 
-}
+
+
 
 @ExperimentalMaterialApi
 @Composable
