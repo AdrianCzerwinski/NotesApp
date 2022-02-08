@@ -16,4 +16,11 @@
     <string name="update_icon">Update Icon</string>
     <string name="title">Title</string>
     <string name="description">Description</string>
+    <string name="no">No</string>
+    <string name="yes">Yes</string>
+    <string name="delete_note">Remove \'%1$s\'?</string>
+    <string name="delete_note_confirmation">Are you sure you want to remove \'%1$s\'?</string>
+    <string name="delete_all_notes">Remove all notes?</string>
+    <string name="delete_all_notes_confirmation">Are you sure you want to
+        remove all note? There is no going back…</string>
 </resources>

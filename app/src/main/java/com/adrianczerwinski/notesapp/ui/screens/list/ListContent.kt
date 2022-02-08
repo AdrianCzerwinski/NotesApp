@@ -12,31 +12,53 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.adrianczerwinski.notesapp.data.models.NoteTask
 import com.adrianczerwinski.notesapp.data.models.Priority
 import com.adrianczerwinski.notesapp.data.util.RequestState
+import com.adrianczerwinski.notesapp.data.util.SearchAppBarState
 import com.adrianczerwinski.notesapp.ui.theme.*
 
 @ExperimentalMaterialApi
 @Composable
 fun ListContent(
-    notes: RequestState<List<NoteTask>>,
+    allNotes: RequestState<List<NoteTask>>,
+    searchedNotes: RequestState<List<NoteTask>>,
+    searchAppBarState: SearchAppBarState,
     navigateToNoteScreen: (noteId: Int)  -> Unit
 ) {
 
-    if (notes is RequestState.Success) {
-        if(notes.data.isEmpty()) {
-            EmptyContent()
-        } else {
-            DisplayNotes(notes = notes.data, navigateToNoteScreen = navigateToNoteScreen)
+    if (searchAppBarState == SearchAppBarState.TRIGGERED) {
+        if(searchedNotes is RequestState.Success) {
+            HandleListContent(
+                notes = searchedNotes.data,
+                navigateToNoteScreen = navigateToNoteScreen
+            )
+        }
+    } else {
+        if (allNotes is RequestState.Success){
+            HandleListContent(notes = allNotes.data, navigateToNoteScreen = navigateToNoteScreen)
         }
     }
 
 
+
+}
+
+@ExperimentalMaterialApi
+@Composable
+
+fun HandleListContent(
+    notes: List<NoteTask>,
+    navigateToNoteScreen: (noteId: Int) -> Unit
+){
+    if(notes.isEmpty()) {
+        EmptyContent()
+    } else {
+        DisplayNotes(notes = notes, navigateToNoteScreen = navigateToNoteScreen)
+    }
 
 }
 

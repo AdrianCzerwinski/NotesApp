@@ -6,11 +6,12 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.adrianczerwinski.notesapp.R
+import com.adrianczerwinski.notesapp.components.DisplayAlertDialog
 import com.adrianczerwinski.notesapp.data.models.NoteTask
 import com.adrianczerwinski.notesapp.data.models.Priority
 import com.adrianczerwinski.notesapp.data.util.Action
@@ -78,10 +79,30 @@ fun ExistingNoteAppBar(
         },
         backgroundColor = MaterialTheme.colors.topAppBarBackgroundColor,
         actions = {
-            DeleteAction(onDeleteClicked = navigateToListScreen)
-            UpdateAction(onUpdateClicked = navigateToListScreen)
+            ExistingNoteAppBarAction(selectedNote, navigateToListScreen = navigateToListScreen)
         }
     )
+}
+@Composable
+fun ExistingNoteAppBarAction (
+    selectedNote: NoteTask,
+    navigateToListScreen: (Action) -> Unit
+) {
+    var openDialog by remember { mutableStateOf(false)}
+
+    DisplayAlertDialog(
+        title = stringResource(id = R.string.delete_note, selectedNote.title),
+        message = stringResource(id = R.string.delete_note_confirmation, selectedNote.title),
+        openDialog = openDialog,
+        closeDialog = { openDialog = false },
+        onYesClicked = {navigateToListScreen(Action.DELETE)}
+    )
+
+    DeleteAction(onDeleteClicked = {
+        openDialog = true
+    })
+    UpdateAction(onUpdateClicked = navigateToListScreen)
+
 }
 
 @Composable
@@ -99,9 +120,9 @@ fun CloseAction(
 
 @Composable
 fun DeleteAction(
-    onDeleteClicked: (Action) -> Unit
+    onDeleteClicked: () -> Unit
 ) {
-    IconButton(onClick = {onDeleteClicked(Action.DELETE)}) {
+    IconButton(onClick = { onDeleteClicked() }) {
         Icon(
             imageVector = Icons.Filled.Delete,
             contentDescription = stringResource(id = R.string.delete_all ),

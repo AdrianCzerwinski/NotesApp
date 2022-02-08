@@ -7,10 +7,12 @@ import androidx.lifecycle.viewModelScope
 import com.adrianczerwinski.notesapp.data.models.NoteTask
 import com.adrianczerwinski.notesapp.data.models.Priority
 import com.adrianczerwinski.notesapp.data.repositories.NotesRepository
+import com.adrianczerwinski.notesapp.data.util.Action
 import com.adrianczerwinski.notesapp.data.util.Constants.MAX_TITLE_LENGTH
 import com.adrianczerwinski.notesapp.data.util.RequestState
 import com.adrianczerwinski.notesapp.data.util.SearchAppBarState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
@@ -21,6 +23,8 @@ import javax.inject.Inject
 class SharedViewModel @Inject constructor(
     private val repository: NotesRepository
 ) : ViewModel() {
+
+    val action: MutableState<Action> = mutableStateOf(Action.NO_ACTION)
 
     val id: MutableState<Int> = mutableStateOf(0)
     val title: MutableState<String> = mutableStateOf("")
@@ -34,6 +38,9 @@ class SharedViewModel @Inject constructor(
 
     private var _allNotes = MutableStateFlow<RequestState<List<NoteTask>>>(RequestState.Idle)
     val allNotes: StateFlow<RequestState<List<NoteTask>>> = _allNotes
+
+    private var _searchedNotes = MutableStateFlow<RequestState<List<NoteTask>>>(RequestState.Idle)
+    val searchedNotes: StateFlow<RequestState<List<NoteTask>>> = _searchedNotes
 
     fun getAllNotes() {
         _allNotes.value = RequestState.Loading
@@ -51,6 +58,24 @@ class SharedViewModel @Inject constructor(
 
     }
 
+    fun searchDataBase(searchQuery: String) {
+        _searchedNotes.value = RequestState.Loading
+        try {
+            viewModelScope.launch {
+                repository.searchDatabase(searchQuery = "%$searchQuery%")
+                    .collect { searchedNotes ->
+                        _searchedNotes.value = RequestState.Success(searchedNotes)
+                    }
+            }
+
+        } catch (e: Exception) {
+            _searchedNotes.value = RequestState.Error(e)
+
+        }
+        searchAppBarState.value = SearchAppBarState.TRIGGERED
+
+    }
+
     private val _selectedNote: MutableStateFlow<NoteTask?> = MutableStateFlow(null)
     val selectedNote: StateFlow<NoteTask?> = _selectedNote
 
@@ -61,6 +86,72 @@ class SharedViewModel @Inject constructor(
 
             }
         }
+    }
+
+    private fun addNote() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val noteTask = NoteTask(
+                title = title.value,
+                description = description.value,
+                priority = priority.value
+            )
+            repository.addNote(noteTask = noteTask)
+        }
+        searchAppBarState.value = SearchAppBarState.CLOSED
+    }
+
+
+    private fun updateNote(){
+        viewModelScope.launch(Dispatchers.IO) {
+            val noteTask = NoteTask(
+                id = id.value,
+                title = title.value,
+                description = description.value,
+                priority = priority.value
+            )
+            repository.updateNote(noteTask = noteTask)
+        }
+    }
+
+    private fun deleteNote(){
+        viewModelScope.launch(Dispatchers.IO) {
+            val noteTask = NoteTask(
+                id = id.value,
+                title = title.value,
+                description = description.value,
+                priority = priority.value
+            )
+            repository.deleteNote(noteTask = noteTask)
+        }
+    }
+
+    private fun deleteAllNotes(){
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.deleteAll()
+        }
+    }
+
+    fun handleDatabaseActions(action: Action) {
+        when (action) {
+            Action.ADD -> {
+                addNote()
+            }
+            Action.UPDATE -> {
+                updateNote()
+            }
+            Action.DELETE -> {
+                deleteNote()
+            }
+            Action.DELETE_ALL -> {
+                deleteAllNotes()
+            }
+            Action.UNDO -> {
+                addNote()
+            }
+            else -> {
+            }
+        }
+        this.action.value = Action.NO_ACTION
     }
 
     fun updateNoteFields(selectedNote: NoteTask?){
@@ -82,6 +173,10 @@ class SharedViewModel @Inject constructor(
         if (newTitle.length < MAX_TITLE_LENGTH){
             title.value = newTitle
         }
+    }
+
+    fun validateFields(): Boolean {
+        return title.value.isNotEmpty() && description.value.isNotEmpty()
     }
 
 
