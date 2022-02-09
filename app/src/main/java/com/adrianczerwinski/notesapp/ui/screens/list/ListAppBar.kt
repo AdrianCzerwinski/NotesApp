@@ -24,7 +24,6 @@ import com.adrianczerwinski.notesapp.components.PriorityItem
 import com.adrianczerwinski.notesapp.data.models.Priority
 import com.adrianczerwinski.notesapp.data.util.Action
 import com.adrianczerwinski.notesapp.data.util.SearchAppBarState
-import com.adrianczerwinski.notesapp.data.util.TrailingIconState
 import com.adrianczerwinski.notesapp.ui.theme.*
 import com.adrianczerwinski.notesapp.ui.viewModels.SharedViewModel
 
@@ -42,7 +41,7 @@ fun ListAppBar(
                     sharedViewModel.searchAppBarState.value =
                         SearchAppBarState.OPENED
                 },
-                onSortClicked = {sharedViewModel.persistSortingState(it)},
+                onSortClicked = { sharedViewModel.persistSortingState(it) },
                 onDeleteAllConfirmed = {
                     sharedViewModel.action.value = Action.DELETE_ALL
                 }
@@ -102,13 +101,13 @@ fun ListAppBarActions(
     var openDialog by remember {
         mutableStateOf(false)
     }
-    
+
     DisplayAlertDialog(
         title = stringResource(id = R.string.delete_all_notes),
         message = stringResource(id = R.string.delete_all_notes_confirmation),
         openDialog = openDialog,
         closeDialog = { openDialog = false },
-        onYesClicked = {onDeleteAllConfirmed()}
+        onYesClicked = { onDeleteAllConfirmed() }
     )
 
     SearchAction(onSearchClicked = onSearchClicked)
@@ -151,30 +150,40 @@ fun SortAction(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            DropdownMenuItem(
-                onClick = {
-                    expanded = false
-                    onSortClicked(Priority.LOW)
+            Priority.values().slice(setOf(0, 2, 3)).forEach{ priority ->
+                DropdownMenuItem(
+                    onClick = {
+                        expanded = false
+                        onSortClicked(priority)
+                    }
+                ) {
+                    PriorityItem(priority = priority)
                 }
-            ) {
-                PriorityItem(priority = Priority.LOW)
             }
-            DropdownMenuItem(
-                onClick = {
-                    expanded = false
-                    onSortClicked(Priority.HIGH)
-                }
-            ) {
-                PriorityItem(priority = Priority.HIGH)
-            }
-            DropdownMenuItem(
-                onClick = {
-                    expanded = false
-                    onSortClicked(Priority.NONE)
-                }
-            ) {
-                PriorityItem(priority = Priority.NONE)
-            }
+//            DropdownMenuItem(
+//                onClick = {
+//                    expanded = false
+//                    onSortClicked(Priority.LOW)
+//                }
+//            ) {
+//                PriorityItem(priority = Priority.LOW)
+//            }
+//            DropdownMenuItem(
+//                onClick = {
+//                    expanded = false
+//                    onSortClicked(Priority.HIGH)
+//                }
+//            ) {
+//                PriorityItem(priority = Priority.HIGH)
+//            }
+//            DropdownMenuItem(
+//                onClick = {
+//                    expanded = false
+//                    onSortClicked(Priority.NONE)
+//                }
+//            ) {
+//                PriorityItem(priority = Priority.NONE)
+//            }
 
         }
     }
@@ -221,9 +230,7 @@ fun SearchAppBar(
     onCloseClicked: () -> Unit,
     onSearchClicked: (String) -> Unit
 ) {
-    var trailngIconState by remember {
-        mutableStateOf(TrailingIconState.READY_TO_DELETE)
-    }
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -265,22 +272,13 @@ fun SearchAppBar(
             trailingIcon = {
                 IconButton(
                     onClick = {
-                        when (trailngIconState){
-                            TrailingIconState.READY_TO_DELETE -> {
-                                onTextChange("")
-                                trailngIconState = TrailingIconState.READY_TO_CLOSE
-                            }
-                            TrailingIconState.READY_TO_CLOSE -> {
-                                if (text.isNotEmpty()){
-                                    onTextChange("")
-                                } else {
-                                    onCloseClicked()
-                                    trailngIconState = TrailingIconState.READY_TO_DELETE
-                                }
-
-                            }
+                        if (text.isNotEmpty()) {
+                            onTextChange("")
+                        } else {
+                            onCloseClicked()
                         }
-                    }) {
+                    }
+                ) {
                     Icon(
                         imageVector = Icons.Filled.Close,
                         contentDescription = stringResource(id = R.string.close_icone),

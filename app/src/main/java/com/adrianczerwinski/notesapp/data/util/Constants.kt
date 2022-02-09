@@ -6,6 +6,7 @@ object Constants {
 
     const val LIST_SCREEN = "list/{action}"
     const val NOTE_SCREEN = "note/{noteId}"
+    const val SPLASH_SCREEN = "splash"
 
     const val LIST_ARGUMENT_KEY = "action"
     const val NOTE_ARGUMENT_KEY = "noteId"
@@ -14,5 +15,7 @@ object Constants {
 
     const val PREFERENCE_NAME = "note_preferences"
     const val PREFERENCE_KEY = "sort_state"
+
+    const val SPLASH_SCREEN_DELAY = 3000L
 
 }

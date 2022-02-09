@@ -1,7 +1,6 @@
 package com.adrianczerwinski.notesapp.ui.viewModels
 
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -24,6 +23,16 @@ class SharedViewModel @Inject constructor(
     private val repository: NotesRepository,
     private val dataStoreRepository: DataStoreRepository
 ) : ViewModel() {
+    private var _allNotes = MutableStateFlow<RequestState<List<NoteTask>>>(RequestState.Idle)
+    val allNotes: StateFlow<RequestState<List<NoteTask>>> = _allNotes
+
+    private val _sortState = MutableStateFlow<RequestState<Priority>>(RequestState.Idle)
+    val sortState: StateFlow<RequestState<Priority>> = _sortState
+
+    init {
+        getAllNotes()
+        readSortState()
+    }
 
     val action: MutableState<Action> = mutableStateOf(Action.NO_ACTION)
 
@@ -37,13 +46,11 @@ class SharedViewModel @Inject constructor(
         mutableStateOf(SearchAppBarState.CLOSED)
     var searchTextState: MutableState<String> = mutableStateOf("")
 
-    private var _allNotes = MutableStateFlow<RequestState<List<NoteTask>>>(RequestState.Idle)
-    val allNotes: StateFlow<RequestState<List<NoteTask>>> = _allNotes
 
     private var _searchedNotes = MutableStateFlow<RequestState<List<NoteTask>>>(RequestState.Idle)
     val searchedNotes: StateFlow<RequestState<List<NoteTask>>> = _searchedNotes
 
-    fun getAllNotes() {
+    private fun getAllNotes() {
         _allNotes.value = RequestState.Loading
         try {
             viewModelScope.launch {
@@ -91,10 +98,8 @@ class SharedViewModel @Inject constructor(
             emptyList()
         )
 
-    private val _sortState = MutableStateFlow<RequestState<Priority>>(RequestState.Idle)
-    val sortState: StateFlow<RequestState<Priority>> = _sortState
 
-    fun readSortState(){
+    private fun readSortState() {
         _sortState.value = RequestState.Loading
         try {
             viewModelScope.launch {
@@ -120,7 +125,7 @@ class SharedViewModel @Inject constructor(
     private val _selectedNote: MutableStateFlow<NoteTask?> = MutableStateFlow(null)
     val selectedNote: StateFlow<NoteTask?> = _selectedNote
 
-    fun getSelectedNote(noteId: Int){
+    fun getSelectedNote(noteId: Int) {
         viewModelScope.launch {
             repository.getSelectedNote(noteId).collect { note ->
                 _selectedNote.value = note
@@ -142,7 +147,7 @@ class SharedViewModel @Inject constructor(
     }
 
 
-    private fun updateNote(){
+    private fun updateNote() {
         viewModelScope.launch(Dispatchers.IO) {
             val noteTask = NoteTask(
                 id = id.value,
@@ -154,7 +159,7 @@ class SharedViewModel @Inject constructor(
         }
     }
 
-    private fun deleteNote(){
+    private fun deleteNote() {
         viewModelScope.launch(Dispatchers.IO) {
             val noteTask = NoteTask(
                 id = id.value,
@@ -166,7 +171,7 @@ class SharedViewModel @Inject constructor(
         }
     }
 
-    private fun deleteAllNotes(){
+    private fun deleteAllNotes() {
         viewModelScope.launch(Dispatchers.IO) {
             repository.deleteAll()
         }
@@ -192,11 +197,10 @@ class SharedViewModel @Inject constructor(
             else -> {
             }
         }
-        this.action.value = Action.NO_ACTION
     }
 
-    fun updateNoteFields(selectedNote: NoteTask?){
-        if(selectedNote != null) {
+    fun updateNoteFields(selectedNote: NoteTask?) {
+        if (selectedNote != null) {
             id.value = selectedNote.id
             title.value = selectedNote.title
             description.value = selectedNote.description
@@ -211,7 +215,7 @@ class SharedViewModel @Inject constructor(
     }
 
     fun updateTitle(newTitle: String) {
-        if (newTitle.length < MAX_TITLE_LENGTH){
+        if (newTitle.length < MAX_TITLE_LENGTH) {
             title.value = newTitle
         }
     }

@@ -1,5 +1,6 @@
 package com.adrianczerwinski.notesapp.ui.screens.list
 
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -16,16 +17,19 @@ import com.adrianczerwinski.notesapp.ui.viewModels.SharedViewModel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+@ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @Composable
 fun ListScreen(
     navigateToNoteScreen: (noteId: Int) -> Unit,
-    sharedViewModel: SharedViewModel
+    sharedViewModel: SharedViewModel,
+    action: Action
 ) {
-    LaunchedEffect(key1 = true) {
-        sharedViewModel.getAllNotes()
-        sharedViewModel.readSortState()
+
+    LaunchedEffect(key1 = action ) {
+        sharedViewModel.handleDatabaseActions(action)
     }
+
     val searchAppBarState: SearchAppBarState by sharedViewModel.searchAppBarState
     val searchTextState: String by sharedViewModel.searchTextState
     val allNotes by sharedViewModel.allNotes.collectAsState()
@@ -36,12 +40,12 @@ fun ListScreen(
     val highPriorityNotes by sharedViewModel.highPriorityNotes.collectAsState()
 
 
-    val action by sharedViewModel.action
+
     val scaffoldState = rememberScaffoldState()
 
     DisplaySnackBar(
         scaffoldState = scaffoldState ,
-        handleDatabaseActions = { sharedViewModel.handleDatabaseActions(action = action)},
+        onComplete = { sharedViewModel.action.value = it},
         noteTitle = sharedViewModel.title.value,
         onUndoClicked = {
                         sharedViewModel.action.value = it
@@ -65,7 +69,12 @@ fun ListScreen(
             navigateToNoteScreen = navigateToNoteScreen,
             lowPriorityNotes = lowPriorityNotes,
             highPriorityNotes = highPriorityNotes,
-            sortState = sortState
+            sortState = sortState,
+            onSwipeToDelete = { action, note ->
+                sharedViewModel.action.value = action
+                sharedViewModel.updateNoteFields(selectedNote = note)
+                scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
+            }
         )},
         floatingActionButton = {
             ListFab(onFabClicked = navigateToNoteScreen)
@@ -93,11 +102,10 @@ fun ListFab(
 fun DisplaySnackBar(
     onUndoClicked: (Action) -> Unit,
     scaffoldState: ScaffoldState,
-    handleDatabaseActions: () -> Unit,
+    onComplete: (Action) -> Unit,
     noteTitle: String,
     action: Action
 ) {
-    handleDatabaseActions()
     val scope = rememberCoroutineScope()
     LaunchedEffect(key1 = action) {
         if(action != Action.NO_ACTION) {
@@ -112,6 +120,7 @@ fun DisplaySnackBar(
                     onUndoClicked = onUndoClicked
                 )
             }
+            onComplete(Action.NO_ACTION)
         }
     }
 
